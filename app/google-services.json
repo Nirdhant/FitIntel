@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "556420334828",
+    "project_id": "fitintel-7f8c0",
+    "storage_bucket": "fitintel-7f8c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556420334828:android:bbefae31a4b6abf68b51c9",
+        "android_client_info": {
+          "package_name": "com.example.fitintel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "556420334828-iauadcoub5rh8ctt063tmnckjfn213br.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fitintel",
+            "certificate_hash": "9123c38ed28bbb8a67fed38bb68f851354cf0011"
+          }
+        },
+        {
+          "client_id": "556420334828-mui12qg1sjv4k06jc9137c3vdt86aafo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1XnmbbRQDo6wd6v8XAk5_Bi864fHgRaQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "556420334828-mui12qg1sjv4k06jc9137c3vdt86aafo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
