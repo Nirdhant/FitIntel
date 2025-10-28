@@ -45,6 +45,10 @@ dependencies {
     //firebase ai logic(gemini)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.ai)
+    //viewmodel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    //project
+    implementation(project(":pdfExtractor"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

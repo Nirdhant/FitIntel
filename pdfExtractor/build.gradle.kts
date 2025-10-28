@@ -51,6 +51,8 @@ dependencies {
     //coroutine await
     implementation (libs.kotlinx.coroutines.play.services)
 
+    //viewmodel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

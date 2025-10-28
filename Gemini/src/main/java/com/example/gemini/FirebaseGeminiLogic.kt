@@ -8,22 +8,37 @@ import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 
 object FirebaseGeminiLogic {
+
     private var model: GenerativeModel? = null
-    fun init(context: Context){
-        FirebaseApp.initializeApp(context)
-        model = Firebase.ai(backend = GenerativeBackend.googleAI())
-            .generativeModel("gemini-2.0-flash-lite-001")
+    private var isInitialized = false
+
+    fun init(context: Context) {
+        if (!isInitialized) {
+            try {
+                FirebaseApp.initializeApp(context)
+                model = Firebase
+                    .ai(backend = GenerativeBackend.googleAI())
+                    .generativeModel("gemini-2.0-flash-lite-001")
+                isInitialized = true
+            } catch (e: Exception) {
+                throw Exception("Failed to initialize Gemini AI: ${e.message}")
+            }
+        }
     }
-    suspend fun sendPrompt(prompt: String): String{
+    suspend fun sendPrompt(prompt: String): String {
+        // Check if initialized
+        if (!isInitialized || model == null) {
+            return "Error: Gemini AI not initialized. Call init() first."
+        }
 
         return try {
             val response = model?.generateContent(prompt)
             response?.text?.let {
-                return it
-            } ?: "No response"
-        }
-        catch (e: Exception) {
-            "Error: ${e.message}"
+                if (it.isNotBlank()) it else "No response generated"
+            } ?: "No response from AI"
+
+        } catch (e: Exception) {
+            "Error: ${e.message ?: "Unknown error occurred"}"
         }
     }
 }

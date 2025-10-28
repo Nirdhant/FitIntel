@@ -61,5 +61,6 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     //modules
     implementation(project(":Gemini"))
+    implementation(project(":pdfExtractor"))
     implementation(project(":authentication"))
 }
