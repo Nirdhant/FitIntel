@@ -22,8 +22,6 @@ dependencyResolutionManagement {
 rootProject.name = "FitIntel"
 include(":app")
 include(":pdfExtractor")
-include(":pdftest")
 include(":Gemini")
-include(":geminitest")
 include(":authentication")
-include(":authenticationtest")
+include(":core")

@@ -45,11 +45,29 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+
+    //Compose bom
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.foundation)
+
+    //Navigation
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    //firebase
+    implementation(platform(libs.firebase.bom))
+
+    //modules
+    implementation(project(":core"))
+    implementation(project(":authentication"))
+    implementation(project(":pdfExtractor"))
+    implementation(project(":Gemini"))
+
+    //Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -57,10 +75,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    //firebase
-    implementation(platform(libs.firebase.bom))
-    //modules
-    implementation(project(":Gemini"))
-    implementation(project(":pdfExtractor"))
-    implementation(project(":authentication"))
+
 }

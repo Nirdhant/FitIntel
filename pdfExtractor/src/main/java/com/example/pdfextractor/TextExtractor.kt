@@ -2,7 +2,7 @@ package com.example.pdfextractor
 
 import android.graphics.Bitmap
 import android.util.Log
-import com.example.pdfextractor.model.HealthData
+import com.example.core.model.HealthData
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions

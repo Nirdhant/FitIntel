@@ -1,6 +1,6 @@
 package com.example.pdfextractor
 
-import android.content.Context
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -9,39 +9,90 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.pdfextractor.model.HealthData
+import com.example.core.state.AppState
+import com.example.pdfextractor.util.PdfToBitmapConverter
+import kotlinx.coroutines.launch
 
 @Composable
-fun PdfScreen(context: Context, onHealthDataExtracted: (HealthData) -> Unit) {
-    val viewModel: PdfViewModel = viewModel()
+fun PdfScreen() {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val textExtractor = remember { TextExtractor() }
 
-    val pdfState by viewModel.pdfState.collectAsState()
-
-    val getPdfLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val getPdfLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
         uri?.let {
-            viewModel.processPdf(context, it)
-        }
-    }
-    LaunchedEffect(pdfState) {
-        if (pdfState is PdfState.Success) {
-            val healthData = (pdfState as PdfState.Success).healthData
-            onHealthDataExtracted(healthData)
+            // ✅ Start global loading
+            AppState.startProcessing("Converting PDF...")
+            Toast.makeText(context, "PDF Selected", Toast.LENGTH_SHORT).show()
+
+            coroutineScope.launch {
+                val result = PdfToBitmapConverter.convert(context, it)
+                result.fold(
+                    onSuccess = { bitmapList ->
+                        AppState.startProcessing("Extracting text...")
+                        Toast.makeText(context, "PDF Converted", Toast.LENGTH_SHORT).show()
+
+                        val extractResult = textExtractor.extractTextFromBitmap(bitmapList)
+                        extractResult.fold(
+                            onSuccess = { healthData ->
+                                AppState.startProcessing("Analyzing health data...")
+
+                                // ✅ Save to AppState
+                                AppState.setHealthData(healthData)
+
+                                // Small delay for UX
+                                kotlinx.coroutines.delay(500)
+
+                                // ✅ Stop loading
+                                AppState.stopProcessing()
+
+                                // ✅ Show success toast - user navigates manually
+                                Toast.makeText(
+                                    context,
+                                    "✅ Analysis complete! Click 'Response' tab to view results.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                // ❌ NO auto-navigation - removed onSuccess(healthData)
+                            },
+                            onFailure = { exception ->
+                                AppState.stopProcessing()
+                                Toast.makeText(
+                                    context,
+                                    "Extraction failed: ${exception.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        )
+                    },
+                    onFailure = { exception ->
+                        AppState.stopProcessing()
+                        Toast.makeText(
+                            context,
+                            "PDF Conversion failed: ${exception.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+            }
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize(),
+    Column(
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -61,16 +112,18 @@ fun PdfScreen(context: Context, onHealthDataExtracted: (HealthData) -> Unit) {
                         .align(Alignment.TopCenter)
                         .padding(top = 50.dp),
                     painter = painterResource(id = R.drawable.pdf),
-                    contentDescription = "PDF icon"
+                    contentDescription = null
                 )
+
                 Text(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(bottom = 150.dp),
-                    text = "Upload The PDF Of Your Health Report",
+                    text = "Upload The Pdf Of Your Health Report",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
+
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -78,59 +131,15 @@ fun PdfScreen(context: Context, onHealthDataExtracted: (HealthData) -> Unit) {
                         .padding(bottom = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    when (pdfState) {
-                        is PdfState.Initial -> {
-                            Text(
-                                text = "No PDF uploaded yet",
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            )
-                        }
-
-                        is PdfState.ConvertingPdf -> {
-                            CircularProgressIndicator()
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Converting PDF to images...",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-
-                        is PdfState.ExtractingText -> {
-                            CircularProgressIndicator()
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Extracting health data...",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                        is PdfState.Success -> {
-                            Text(
-                                text = "Health data extracted successfully!",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Green
-                            )
-                        }
-                        is PdfState.Error -> {
-                            Text(
-                                text = "Error: ${(pdfState as PdfState.Error).message}",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.Red
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = {
+                            // ✅ Reset previous data before new upload
+                            AppState.reset()
                             getPdfLauncher.launch("application/pdf")
                         },
-                        enabled = pdfState !is PdfState.ConvertingPdf && pdfState !is PdfState.ExtractingText
+                        enabled = !AppState.isProcessing  // ✅ Disabled during processing
                     ) {
-                        Text(text = if (pdfState is PdfState.Success) "Upload Another PDF" else "Upload PDF")
+                        Text(text = "Upload Pdf")
                     }
                 }
             }

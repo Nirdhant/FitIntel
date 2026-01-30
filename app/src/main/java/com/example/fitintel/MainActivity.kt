@@ -3,46 +3,79 @@ package com.example.fitintel
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
+import com.example.core.state.AppState
+import com.example.fitintel.components.BottomNavigationBar
+import com.example.fitintel.navigation.BottomNavGraph
 import com.example.fitintel.ui.theme.FitIntelTheme
-import com.example.gemini.FirebaseGeminiLogic
-import com.example.gemini.GeminiScreen
-import com.example.pdfextractor.PdfScreen
-import com.example.pdfextractor.model.HealthData
-
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        FirebaseGeminiLogic.init(this)
         setContent {
             FitIntelTheme {
-                MainContent()
+                MainScreen()
             }
         }
     }
 }
 
 @Composable
-fun MainContent() {
-    var healthData by remember { mutableStateOf<HealthData?>(null) }
+fun MainScreen() {
+    val navController = rememberNavController()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (healthData == null) {
-            PdfScreen(
-                onHealthDataExtracted = { extractedData ->
-                    healthData = extractedData
-                },
-                context = LocalContext.current
-            )
-        } else {
-            GeminiScreen(healthData = healthData!!)
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                // ✅ Always show bottom nav (don't hide during processing)
+                BottomNavigationBar(navController = navController)
+            }
+        ) { paddingValues ->
+            Box(modifier = Modifier.padding(paddingValues)) {
+                BottomNavGraph(navController = navController)
+            }
+        }
+
+        // ✅ Global Loading Overlay (only blocks content, not bottom nav)
+        if (AppState.isProcessing) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp)  // ✅ Don't cover bottom nav
+                    .background(Color.Black.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(64.dp),
+                        color = Color.White,
+                        strokeWidth = 6.dp
+                    )
+
+                    Text(
+                        text = AppState.processingMessage,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White
+                    )
+                }
+            }
         }
     }
 }

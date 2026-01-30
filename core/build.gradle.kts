@@ -2,10 +2,11 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-parcelize")   //how this add even this is not present in project build file
 }
 
 android {
-    namespace = "com.example.pdfextractor"
+    namespace = "com.example.core"
     compileSdk = 35
 
     defaultConfig {
@@ -31,32 +32,22 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    buildFeatures {
+        compose = true
+    }
 }
 
 dependencies {
 
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    //jetpack compose essentials
+    //compose
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.ui)
-    implementation(libs.androidx.foundation)
-    implementation(libs.material3)
-    //for result launcher
-    implementation(libs.androidx.activity.compose)
-
-    //ml kit text recognition
-    implementation(libs.text.recognition)
-    //coroutine await
-    implementation (libs.kotlinx.coroutines.play.services)
-
-    //viewmodel
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-
+    implementation(libs.androidx.ui)
+    //testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    implementation(project(":core"))
 }

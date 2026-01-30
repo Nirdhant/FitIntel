@@ -1,6 +1,7 @@
 package com.example.pdfextractor
 
-import com.example.pdfextractor.model.HealthData
+import com.example.core.model.HealthData
+
 
 sealed class PdfState {
     object Initial : PdfState()
