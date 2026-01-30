@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.core.state.AppState
 import com.example.fitintel.components.BottomNavigationBar
 import com.example.fitintel.navigation.BottomNavGraph
+import com.example.fitintel.screens.authentication.AuthNavigation
 import com.example.fitintel.ui.theme.FitIntelTheme
 
 class MainActivity : ComponentActivity() {
@@ -36,44 +37,56 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val navController = rememberNavController()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-                // ✅ Always show bottom nav (don't hide during processing)
-                BottomNavigationBar(navController = navController)
-            }
-        ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues)) {
-                BottomNavGraph(navController = navController)
-            }
-        }
+    // ✅ FIXED: Correct State collection
+    val isAuthenticated by AppState.isAuthenticated
 
-        // ✅ Global Loading Overlay (only blocks content, not bottom nav)
-        if (AppState.isProcessing) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 80.dp)  // ✅ Don't cover bottom nav
-                    .background(Color.Black.copy(alpha = 0.7f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+    if (!isAuthenticated) {
+        // Show Auth screens FIRST
+        AuthNavigation(
+            onAuthSuccess = {
+                // On successful login/signup → Go to main app
+                AppState.setAuthenticated(true)
+            }
+        )
+    } else {
+        // Show main app with bottom nav
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                bottomBar = {
+                    BottomNavigationBar(navController = navController)
+                }
+            ) { paddingValues ->
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    BottomNavGraph(navController = navController)
+                }
+            }
+
+            // Global Loading Overlay
+            if (AppState.isProcessing) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 80.dp)
+                        .background(Color.Black.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(64.dp),
-                        color = Color.White,
-                        strokeWidth = 6.dp
-                    )
-
-                    Text(
-                        text = AppState.processingMessage,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(64.dp),
+                            color = Color.White,
+                            strokeWidth = 6.dp
+                        )
+                        Text(
+                            text = AppState.processingMessage,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
